@@ -27,11 +27,12 @@ app.get('/ec2', (req, res) => {
 // API endpoint to generate signed cookies
 app.post('/api/generate-cookies', async (req, res) => {
   try {
-    const config = req.body;
-
-    if (!config.urlPrefix || !config.keyPairId || !config.privateKeyPath || !config.expiryHours) {
-      return res.status(400).json({ error: 'Missing required configuration parameters' });
-    }
+    const config = {
+      urlPrefix: 'https://d22si132od0d26.cloudfront.net/video/*',
+      keyPairId: 'KG3VA0PMQKICO',
+      privateKeyPath: path.join(__dirname, 'cookies.pem'),
+      expiryHours: 5
+    };
 
     const cookies = await createSignedCookies(config);
     res.json(cookies);
@@ -41,8 +42,8 @@ app.post('/api/generate-cookies', async (req, res) => {
   }
 });
 
-// Start HTTP server on port 3000 for local development
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+// Start HTTP server on port 80 (for EC2)
+app.listen(80, '0.0.0.0', () => {
+  console.log('Server running on http://0.0.0.0:80');
 });
 

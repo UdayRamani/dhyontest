@@ -104,13 +104,7 @@
         try {
           const response = await fetch('/api/generate-cookies', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              urlPrefix: 'https://d22si132od0d26.cloudfront.net/video/',
-              keyPairId: 'KG3VA0PMQKICO',
-              privateKeyPath: './cookies.pem',
-              expiryHours: 5
-            })
+            headers: { 'Content-Type': 'application/json' }
           });
 
           if (!response.ok) throw new Error('Failed to generate cookies');
