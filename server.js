@@ -2,8 +2,15 @@ const fs = require('fs');
 const express = require('express');
 const path = require('path');
 const { createSignedCookies } = require('./cookies');
+const https = require('https');
 
 const app = express();
+
+// SSL/TLS configuration
+const sslOptions = {
+  key: fs.readFileSync('/etc/letsencrypt/live/awstest.odhavtech.com/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/awstest.odhavtech.com/fullchain.pem')
+};
 
 // Middleware
 app.use(express.json());
@@ -42,8 +49,8 @@ app.post('/api/generate-cookies', async (req, res) => {
   }
 });
 
-// Start HTTP server on port 80 (for EC2)
-app.listen(80, '0.0.0.0', () => {
-  console.log('Server running on http://0.0.0.0:80');
+// Start HTTPS server on port 443
+https.createServer(sslOptions, app).listen(443, '0.0.0.0', () => {
+  console.log('HTTPS Server running on https://0.0.0.0:443');
 });
 
