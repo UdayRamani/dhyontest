@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .error {
+      color: red;
+      margin-top: 0.5rem;
+    }
+
+    .success {
+      color: green;
+      margin-top: 0.5rem;
+    }
+
+    #cookiesOutput {
+      text-align: left;
+      margin-top: 1rem;
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required /><br />
+      <input type="password" id="password" placeholder="Password" required /><br />
+      <button type="submit">Login</button>
+      <div id="message" class=""></div>
+    </form>
+    <div id="cookiesOutput" style="display: none;"></div>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const messageDiv = document.getElementById("message");
+      const cookiesOutput = document.getElementById("cookiesOutput");
+
+      if (username === "testuser" && password === "password123") {
+        messageDiv.className = "success";
+        messageDiv.innerText = "Logging in...";
+
+        try {
+          const response = await fetch('/api/generate-cookies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              urlPrefix: 'https://d22si132od0d26.cloudfront.net/video/',
+              keyPairId: 'KG3VA0PMQKICO',
+              privateKeyPath: './cookies.pem',
+              expiryHours: 5
+            })
+          });
+
+          if (!response.ok) throw new Error('Failed to generate cookies');
+
+          const cloudFrontCookies = await response.json();
+          const expires = new Date(Date.now() + 5 * 60 * 60 * 1000).toUTCString();
+
+          for (const [key, value] of Object.entries(cloudFrontCookies)) {
+            document.cookie = `${key}=${value}; path=/; expires=${expires}; Secure; SameSite=None`;
+          }
+
+          cookiesOutput.style.display = "block";
+          cookiesOutput.innerText = "Received CloudFront Cookies:\n" + JSON.stringify(cloudFrontCookies, null, 2);
+
+          setTimeout(() => window.location.href = "index1.html", 1500);
+        } catch (error) {
+          messageDiv.className = "error";
+          messageDiv.innerText = "Error setting up secure access.";
+        }
+      } else {
+        messageDiv.className = "error";
+        messageDiv.innerText = "Invalid username or password";
+      }
+    });
+  </script>
+</body>
+</html>
+
