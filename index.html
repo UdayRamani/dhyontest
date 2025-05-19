@@ -102,18 +102,33 @@
         messageDiv.innerText = "Logging in...";
 
         try {
+          console.log('Attempting to generate cookies...');
           const response = await fetch('/api/generate-cookies', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            credentials: 'include'
           });
 
-          if (!response.ok) throw new Error('Failed to generate cookies');
+          console.log('Response status:', response.status);
+          const responseText = await response.text();
+          console.log('Response text:', responseText);
 
-          const cloudFrontCookies = await response.json();
+          if (!response.ok) {
+            throw new Error(`Failed to generate cookies: ${responseText}`);
+          }
+
+          const cloudFrontCookies = JSON.parse(responseText);
+          console.log('Received cookies:', cloudFrontCookies);
+
           const expires = new Date(Date.now() + 5 * 60 * 60 * 1000).toUTCString();
 
           for (const [key, value] of Object.entries(cloudFrontCookies)) {
-            document.cookie = `${key}=${value}; path=/; expires=${expires}; Secure; SameSite=None`;
+            const cookieString = `${key}=${value}; path=/; expires=${expires}; Secure; SameSite=None`;
+            console.log('Setting cookie:', cookieString);
+            document.cookie = cookieString;
           }
 
           cookiesOutput.style.display = "block";
@@ -121,8 +136,9 @@
 
           setTimeout(() => window.location.href = "index1.html", 1500);
         } catch (error) {
+          console.error('Error in cookie generation:', error);
           messageDiv.className = "error";
-          messageDiv.innerText = "Error setting up secure access.";
+          messageDiv.innerText = `Error setting up secure access: ${error.message}`;
         }
       } else {
         messageDiv.className = "error";
